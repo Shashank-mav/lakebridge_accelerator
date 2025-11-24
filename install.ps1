@@ -4,9 +4,11 @@
 
 $repo = "https://raw.githubusercontent.com/Shashank-mav/lakebridge_accelerator/main"
 
-Write-Host "`n===============================================" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "===============================================" -ForegroundColor Cyan
 Write-Host " Lakebridge Accelerator – Installer" -ForegroundColor Yellow
-Write-Host "===============================================`n" -ForegroundColor Cyan
+Write-Host "===============================================" -ForegroundColor Cyan
+Write-Host ""
 
 # Create project folder
 $root = "$PWD\lakebridge_accelerator"
@@ -26,7 +28,9 @@ $dirs = @(
 
 foreach ($d in $dirs) {
     $path = "$root\$d"
-    if (!(Test-Path $path)) { New-Item -ItemType Directory -Path $path | Out-Null }
+    if (!(Test-Path $path)) {
+        New-Item -ItemType Directory -Path $path | Out-Null
+    }
 }
 
 Write-Host "Folders prepared." -ForegroundColor Green
@@ -42,13 +46,18 @@ $files = @{
 foreach ($item in $files.GetEnumerator()) {
     $dst = "$root\$($item.Key)"
     Write-Host "Downloading $($item.Key) ..." -ForegroundColor Cyan
-    Invoke-WebRequest -Uri $item.Value -OutFile $dst
+    Invoke-WebRequest -Uri $item.Value -OutFile $dst -UseBasicParsing
 }
 
-Write-Host "`nAll files downloaded successfully!" -ForegroundColor Green
+Write-Host ""
+Write-Host "All files downloaded successfully!" -ForegroundColor Green
 
 # ---- Run Installer ----
-Write-Host "`nLaunching Stage-1 Installer..." -ForegroundColor Yellow
-powershell -ExecutionPolicy Bypass -File "$root\main.py"
+Write-Host ""
+Write-Host "Launching Stage-1 Installer..." -ForegroundColor Yellow
 
-Write-Host "`nInstallation Finished." -ForegroundColor Green
+# Correct Python Execution
+python "$root\main.py"
+
+Write-Host ""
+Write-Host "Installation Finished." -ForegroundColor Green

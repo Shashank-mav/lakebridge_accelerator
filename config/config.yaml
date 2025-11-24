@@ -1,0 +1,8 @@
+dialect: synapse
+profile: lakebridge
+debug: false
+run_validation: true
+run_analyzer: true
+run_transpiler: true
+source_path: D:\lakebridge-accelerator\input
+target_path: D:\lakebridge-accelerator\output

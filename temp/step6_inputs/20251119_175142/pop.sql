@@ -1,0 +1,106 @@
+CREATE PROCEDURE [GI_PROD].[usp_gi_policies_insert_fin]
+    @SchemaName VARCHAR(100),
+    @As_On_Date DATETIME
+AS
+BEGIN
+
+DECLARE 
+    @query1 NVARCHAR(MAX),
+    @query_ins NVARCHAR(MAX),
+    @query_from NVARCHAR(MAX),
+    @query_where NVARCHAR(MAX);
+
+-- DELETE existing records for this date
+SET @query1 = '
+DELETE FROM ' + @SchemaName + '.DM_POLICIES
+WHERE SOURCE_SYSTEM_NAME = ''GeneralInsuranceCore''
+  AND AS_ON_DATE = ''' + CONVERT(VARCHAR(19), @As_On_Date, 120) + '''';
+
+EXEC(@query1);
+
+
+-- INSERT section
+SET @query_ins = '
+INSERT INTO ' + @SchemaName + '.DM_POLICIES
+(
+    AS_ON_DATE,
+    POLICY_ID,
+    POLICY_NUMBER,
+    POLICY_STATUS,
+    POLICY_START_DATE,
+    POLICY_END_DATE,
+    PRODUCT_CODE,
+    TENURE_IN_DAYS,
+    CUSTOMER_ID,
+    CUSTOMER_NAME,
+    CUSTOMER_PAN,
+    SUM_INSURED,
+    PREMIUM_AMOUNT,
+    PREMIUM_COLLECTED,
+    CLAIM_STATUS,
+    CLAIM_AMOUNT,
+    OUTSTANDING_CLAIM_AMOUNT,
+    RISK_SCORE,
+    CHANNEL_ID,
+    AGENT_ID,
+    ETL_CREATED_BY,
+    ETL_CREATED_DATE,
+    ETL_LAST_UPDATED_BY,
+    ETL_LAST_UPDATED_DATE
+)
+SELECT
+    PF.AS_ON_DATE,
+    DP.POLICY_ID,
+    DP.POLICY_NUMBER,
+    DP.POLICY_STATUS,
+    DP.POLICY_START_DATE,
+    DP.POLICY_END_DATE,
+    DP.PRODUCT_CODE,
+    DATEDIFF(DAY, DP.POLICY_START_DATE, DP.POLICY_END_DATE) AS TENURE_IN_DAYS,
+    DC.CUSTOMER_ID,
+    DC.CUSTOMER_NAME,
+    DC.PAN_NUMBER AS CUSTOMER_PAN,
+    DP.SUM_INSURED,
+    PF.PREMIUM_AMOUNT,
+    PF.PREMIUM_COLLECTED_AMOUNT,
+    CL.CLAIM_STATUS,
+    CL.CLAIM_AMOUNT,
+    CL.OUTSTANDING_AMOUNT,
+    RF.RISK_SCORE,
+    DP.CHANNEL_ID,
+    DP.AGENT_ID,
+    ''usp_gi_policies_insert_fin'' AS ETL_CREATED_BY,
+    GETDATE(),
+    ''usp_gi_policies_insert_fin'' AS ETL_LAST_UPDATED_BY,
+    GETDATE()';
+
+
+-- FROM section
+SET @query_from = '
+FROM ' + @SchemaName + '.FCT_POLICY_FIN PF
+LEFT JOIN ' + @SchemaName + '.DIM_POLICY DP
+    ON PF.POLICY_ID = DP.POLICY_ID
+    AND DP.CURRENT_FLAG = ''Y''
+LEFT JOIN ' + @SchemaName + '.DIM_CUSTOMER DC
+    ON DP.CUSTOMER_ID = DC.CUSTOMER_ID 
+    AND DC.CURRENT_FLAG = ''Y''
+LEFT JOIN ' + @SchemaName + '.FCT_POLICY_CLAIMS CL
+    ON DP.POLICY_ID = CL.POLICY_ID
+    AND PF.AS_ON_DATE = CL.AS_ON_DATE
+LEFT JOIN ' + @SchemaName + '.FCT_POLICY_RISK RF
+    ON DP.POLICY_ID = RF.POLICY_ID
+    AND PF.AS_ON_DATE = RF.AS_ON_DATE';
+
+
+-- WHERE section
+SET @query_where = '
+WHERE PF.SOURCE_SYSTEM_ID = 10
+  AND DP.PRODUCT_CODE <> ''TEST999''
+  AND PF.AS_ON_DATE = ''' + CONVERT(VARCHAR(19), @As_On_Date, 120) + '''';
+
+
+-- Execute final query
+EXEC(@query_ins + @query_from + @query_where);
+
+END;
+GO

@@ -53,7 +53,8 @@ Write-Host "All files downloaded successfully."
 # ---- Run Installer ----
 Write-Host ""
 Write-Host "Launching Stage-1 Installer..."
-powershell -ExecutionPolicy Bypass -File "$root\main.py"
+python "$root\main.py"
 
 Write-Host ""
 Write-Host "Installation Finished."
+

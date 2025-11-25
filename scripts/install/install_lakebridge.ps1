@@ -111,13 +111,11 @@ Write-Host "`nChecking if Lakebridge is already installed..."
 
 function Test-LakebridgeInstallation {
     Write-Host "Verifying Lakebridge installation..."
-
+ 
     $result = databricks labs lakebridge --help 2>&1
-
-    if (
-        $LASTEXITCODE -eq 0 -and 
-        ($result -match "Code Transpiler" -or $result -match "Available Commands")
-    ) {
+ 
+    # Check if help command succeeded and shows labs app commands
+    if ($LASTEXITCODE -eq 0 -and $result -match "install" -and $result -match "upgrade") {
         Write-Host "PASS: Lakebridge installation detected."
         return $true
     }

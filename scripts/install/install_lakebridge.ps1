@@ -106,29 +106,47 @@ Pause-Continue
 # ---------------------------------------------------------------------
 # 4. Install Lakebridge (REPLACED SECTION)
 # ---------------------------------------------------------------------
+
 Write-Host "`nChecking if Lakebridge is already installed..."
 
-# Get list of installed python packages
-$pkgList = pip list --format=json | ConvertFrom-Json
+function Test-LakebridgeInstallation {
+    Write-Host "Verifying Lakebridge installation..."
 
-$existing = $pkgList | Where-Object { $_.name -eq "databricks-labs-lakebridge" }
+    $result = databricks labs lakebridge --help 2>&1
 
-if ($existing) {
-    Write-Host "PASS: Lakebridge is already installed (version $($existing.version))."
-    Write-Host "Skipping installation."
+    if (
+        $LASTEXITCODE -eq 0 -and 
+        ($result -match "Code Transpiler" -or $result -match "Available Commands")
+    ) {
+        Write-Host "PASS: Lakebridge installation detected."
+        return $true
+    }
+    else {
+        Write-Host "Lakebridge not installed OR installation corrupted."
+        return $false
+    }
+}
+
+if (Test-LakebridgeInstallation) {
+    Write-Host "Skipping installation because Lakebridge is already installed."
 }
 else {
     Write-Host "Lakebridge not installed. Installing now..."
-    Write-Host "Running: databricks labs install lakebridge"
-
     databricks labs install lakebridge
+
     if ($LASTEXITCODE -ne 0) {
         Write-Host "FAIL: Lakebridge installation failed."
         exit 1
     }
-    Write-Host "PASS: Lakebridge installed successfully."
-}
 
+    if (Test-LakebridgeInstallation) {
+        Write-Host "PASS: Lakebridge installed and verified."
+    }
+    else {
+        Write-Host "FAIL: Lakebridge installation did not complete correctly."
+        exit 1
+    }
+}
 
 # ---------------------------------------------------------------------
 # 5. Install Analyzer + Transpiler  (REMOVED & REPLACED WITH MESSAGE)

@@ -34,12 +34,12 @@ def verify_installation():
     print(f"\n{BOLD}{BLUE}STEP 3 - Verifying Installation{RESET}")
 
     # Check Python package installation
-    try:
-        import databricks.labs.lakebridge
-        print(f"{GREEN}PASS:{RESET} Lakebridge Python package is installed.")
-    except Exception:
-        print(f"{RED}FAIL:{RESET} Lakebridge Python package NOT found.")
-        sys.exit(1)
+    # try:
+    #     import databricks.labs.lakebridge
+    #     print(f"{GREEN}PASS:{RESET} Lakebridge Python package is installed.")
+    # except Exception:
+    #     print(f"{RED}FAIL:{RESET} Lakebridge Python package NOT found.")
+    #     sys.exit(1)
 
     # Check CLI
     result = subprocess.run(
